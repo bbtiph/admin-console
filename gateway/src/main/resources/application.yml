@@ -1,0 +1,40 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id:  CRM-SERVER
+          uri: 'http://localhost:8888'
+          predicates:
+            - Path=/crm-server/**
+  ldap:
+      embedded:
+        ldif: "classpath:thmshmm.ldif"
+        base-dn: "dc=thmshmm,dc=de"
+        port: 8904
+  application:
+    name: gateway
+ldap:
+    url: "ldap://localhost:8904"
+    base:
+       suffix: "dc=thmshmm,dc=de"
+    user:
+      search:
+        base: "ou=people"
+        filter: "(uid={0})"
+    group:
+      search:
+        base: "ou=groups"
+        filter: "(uniqueMember={0})"
+
+jwt:
+  issuer: "ThmsHmm"
+  expiration:
+    seconds: 300
+server:
+  port: 9876
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    service-url:
+      default-zone: ${EUREKA_URL:http://127.0.0.1:8761/eureka/}
