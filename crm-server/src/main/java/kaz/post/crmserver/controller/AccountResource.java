@@ -4,12 +4,12 @@ import io.swagger.annotations.ApiParam;
 import kaz.post.crmserver.dto.ChangePasswordDto;
 import kaz.post.crmserver.dto.LoginsDto;
 import kaz.post.crmserver.dto.UserDTO;
-import kaz.post.crmserver.entity.reservation.UserEntity;
+import kaz.post.crmserver.entity.UserEntity;
+import kaz.post.crmserver.exceptions.RegistrationException;
 import kaz.post.crmserver.service.AccountService;
 import kaz.post.crmserver.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,9 +18,6 @@ import javax.validation.Valid;
 import java.util.List;
 import java.util.Map;
 
-/**
- * REST controller for managing the current user's account.
- */
 @RestController
 @RequestMapping("/api")
 public class AccountResource {
@@ -28,13 +25,16 @@ public class AccountResource {
     private UserService userService;
     @Autowired
     private AccountService accountService;
-    @Autowired
-    private Environment env;
     private final String USER_TYPE = "USER";
 
     @RequestMapping(value = "/getAllUsers", method = RequestMethod.GET)
     public ResponseEntity<List<UserDTO>> getAllUsers(@ApiParam(hidden = true) @RequestParam Map<String, String> allRequestParams) {
         return userService.getAllUser(allRequestParams);
+    }
+
+    @RequestMapping(value = "/searchingWithFilter", method = RequestMethod.GET)
+    public ResponseEntity<List<UserDTO>> searchingWithFilter(@ApiParam(hidden = true) @RequestParam Map<String, String> allRequestParams) {
+        return userService.searchingWithFilter(allRequestParams);
     }
 
     @RequestMapping(value = "/getAllUsersCount", method = RequestMethod.GET)
@@ -69,6 +69,11 @@ public class AccountResource {
     @RequestMapping(value = "/changePassword", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> changePassword(@RequestBody ChangePasswordDto changePasswordDto) {
         return accountService.changePassword(changePasswordDto.getPassword(), changePasswordDto.getUserDTO());
+    }
+
+    @RequestMapping(value = "/getUserFioByIin", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public String getUserFioByIin(@RequestParam(value = "iin") String iin) throws RegistrationException {
+        return accountService.getUserFioByiIn(iin);
     }
 }
 

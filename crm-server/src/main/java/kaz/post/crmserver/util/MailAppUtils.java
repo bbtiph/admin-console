@@ -3,7 +3,7 @@ package kaz.post.crmserver.util;
 import com.unboundid.util.json.JSONObject;
 import com.unboundid.util.json.JSONValue;
 import kaz.post.crmserver.dto.Dto;
-import kaz.post.crmserver.entity.reservation.UserEntity;
+import kaz.post.crmserver.entity.UserEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 

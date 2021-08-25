@@ -1,8 +1,6 @@
 package kaz.post.crmserver.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import kaz.post.crmserver.entity.AbstractAddressEntity;
-import kaz.post.crmserver.entity.reservation.UserEntity;
 
 import javax.persistence.*;
 

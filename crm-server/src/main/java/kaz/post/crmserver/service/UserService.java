@@ -1,10 +1,9 @@
 package kaz.post.crmserver.service;
 
 import com.oracle.javafx.jmx.json.JSONException;
-import com.unboundid.util.json.JSONObject;
 import kaz.post.crmserver.dto.UserDTO;
 import kaz.post.crmserver.entity.*;
-import kaz.post.crmserver.entity.reservation.UserEntity;
+import kaz.post.crmserver.entity.UserEntity;
 import kaz.post.crmserver.repositories.AuthorityRepository;
 import kaz.post.crmserver.repositories.OrganizationRepository;
 import kaz.post.crmserver.repositories.UserAddressRepository;
@@ -40,25 +39,21 @@ public class UserService {
     private final Logger log = LoggerFactory.getLogger(UserService.class);
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
-    @Inject
-    private Environment env;
     @Autowired
     private UserRepository userRepository;
-    @Inject
+    @Autowired
     private AuthorityRepository authorityRepository;
-    @Inject
+    @Autowired
     private UserAddressRepository userAddressRepository;
-    @Inject
+    @Autowired
     private OrganizationRepository organizationRepository;
 
-    @Transactional
     public void setAuthority(AuthorityEntity authority, UserEntity newUser) {
         Set<AuthorityEntity> authorities = new HashSet<>();
         authorities.add(authority);
         newUser.setAuthorities(authorities);
     }
 
-    @Transactional
     public UserEntity createUserInformation(String login, String password, String firstName, String lastName,
                                             String middleName, Date birthDate, String iin, String mobileNumber,
                                             String langKey, String organizationBin, UserCacheEntity cachedUser, String userRole) throws JSONException {
@@ -162,7 +157,6 @@ public class UserService {
         return users.isPresent() ? users.get() : null;
     }
 
-    @Transactional
     public ResponseEntity<List<UserDTO>> getAllUser(Map<String, String> allRequestParams) {
         Sort.Direction sortDirection = Sort.Direction.ASC;
         int pageNumber = 0;
@@ -199,7 +193,87 @@ public class UserService {
         return new ResponseEntity<>(userDTOList, HttpStatus.OK);
     }
 
-    @Transactional
+    public ResponseEntity<List<UserDTO>> searchingWithFilter(Map<String, String> allRequestParams) {
+        Sort.Direction sortDirection = Sort.Direction.ASC;
+        int pageNumber = 0;
+        int pageSize = 5;
+        String input = "";
+        String field = "";
+        String sortBy = "id";
+        if (allRequestParams.containsKey("page")) {
+            pageNumber = Integer.parseInt(allRequestParams.get("page"));
+        }
+        if (allRequestParams.containsKey("size")) {
+            pageSize = Integer.parseInt(allRequestParams.get("size"));
+        }
+        if (allRequestParams.containsKey("input")) {
+            input = (allRequestParams.get("input"));
+        }
+        if (allRequestParams.containsKey("field")) {
+            field = (allRequestParams.get("field"));
+        }
+        if (allRequestParams.containsKey("sortDirection")) {
+            if (allRequestParams.get("sortDirection").equals("desc"))
+                sortDirection = Sort.Direction.DESC;
+        }
+        if (allRequestParams.containsKey("sort")) {
+            sortBy = allRequestParams.get("sort");
+        }
+        final Pageable pageableRequest = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy).descending());
+        System.out.println(pageableRequest + ">>> ttt <<<" + input + " " + " <> " + field);
+        Page<UserEntity> users = null;
+        switch (field) {
+            case "IIN":
+                users = userRepository.findAllByIinContains(input, pageableRequest);
+                break;
+
+            case "FIRST_NAME":
+                users = userRepository.findAllByFirstNameContains(input, pageableRequest);
+                break;
+
+            case "MIDDLE_NAME":
+                users = userRepository.findAllByMiddleNameContains(input, pageableRequest);
+                break;
+
+            case "LAST_NAME":
+                users = userRepository.findAllByLastNameContains(input, pageableRequest);
+                break;
+
+            case "MOBILE_NUMBER":
+                users = userRepository.findAllByMobileNumberContains(input, pageableRequest);
+                break;
+
+            default:
+                users = userRepository.findAll(pageableRequest);
+                break;
+        }
+
+        System.out.println("uers>> ");
+        for (UserEntity user : users) {
+            System.out.println("us -> " + user);
+        }
+
+        if (input.length() == 0 || input == null || input.isEmpty()) {
+            System.out.println("sss");
+            users = userRepository.findAll(pageableRequest);
+        }
+
+        List<UserDTO> userDTOList = new ArrayList<>();
+        for (UserEntity user : users) {
+            UserDTO userDTO = new UserDTO(user.getLogin(),
+                    null, user.getFirstName(), user.getLastName(), user
+                    .getMiddleName(), user.getBirthDate(), user
+                    .getIin(), user.getMobileNumber(), user
+                    .getLangKey(), user.getConfirmed(), user.getAuthorities().stream()
+                    .map(AuthorityEntity::getName)
+                    .collect(Collectors.toList()), user.getPosition(), user.getDisablePush(), user.getContract(),
+                    user.getWalletConfirmedOffer(), user.getEnabledMobileSecurity(),
+                    user.getEmployeeNumber(), null, user.getCreatedDate());
+            userDTOList.add(userDTO);
+        }
+        return new ResponseEntity<>(userDTOList, HttpStatus.OK);
+    }
+
     public Long countUser() {
         return userRepository.countUser();
     }

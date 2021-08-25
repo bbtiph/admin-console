@@ -7,7 +7,7 @@ import kaz.post.crmserver.entity.AuthorityEntity;
 import kaz.post.crmserver.entity.RegistrationCacheEntity;
 import kaz.post.crmserver.entity.ReservedLoginEntity;
 import kaz.post.crmserver.entity.UserCacheEntity;
-import kaz.post.crmserver.entity.reservation.UserEntity;
+import kaz.post.crmserver.entity.UserEntity;
 import kaz.post.crmserver.exceptions.MsgParam;
 import kaz.post.crmserver.exceptions.RegExceptionType;
 import kaz.post.crmserver.exceptions.RegistrationException;
@@ -25,7 +25,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
-import java.io.IOException;
 import java.util.*;
 
 @Service
@@ -44,8 +43,6 @@ public class AccountService {
     private UserCacheRepository userCacheRepository;
     @Autowired
     private Environment env;
-    @Autowired
-    UserRepositoryN userRepositoryN;
     @Autowired
     private KgdService kgdService;
     @Inject
@@ -254,5 +251,25 @@ public class AccountService {
                 + "\"messageRu\":\"OK.\", "
                 + "\"messageEn\":\"OK.\", "
                 + "\"status\":\"ok\"}", HttpStatus.OK);
+    }
+
+    public String getUserFioByiIn(String iin) throws RegistrationException {
+        KgdDTO kgdDTO = kgdService.requestKgdData(iin);
+        String[] fioNames;
+        String response = "";
+        if (Objects.nonNull(kgdDTO) && kgdDTO.getExist()) {
+            if (Objects.nonNull(kgdDTO.getFio()) && !kgdDTO.getFio().isEmpty()) {
+                fioNames = kgdDTO.getFio().split(" ");
+                response = response + fioNames[0] + " " + fioNames[1] + " ";
+                if (fioNames.length > 2 && Objects.nonNull(fioNames[2]) && !fioNames[2].isEmpty()) {
+                    response = response + fioNames[2];
+                }
+            } else {
+                throw new RegistrationException(RegExceptionType.NO_NAME);
+            }
+        } else {
+            throw new RegistrationException(RegExceptionType.DATA_NOT_FOUND);
+        }
+        return response;
     }
 }

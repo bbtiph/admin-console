@@ -1,9 +1,6 @@
-package kaz.post.crmserver.entity.reservation;
+package kaz.post.crmserver.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import kaz.post.crmserver.entity.AbstractUserEntity;
-import kaz.post.crmserver.entity.AuthorityEntity;
-import kaz.post.crmserver.entity.UserAddressEntity;
 import lombok.Data;
 import org.hibernate.validator.constraints.Email;
 
@@ -144,13 +141,10 @@ public class UserEntity extends AbstractUserEntity implements Serializable {
 		if (o == null || getClass() != o.getClass()) {
 			return false;
 		}
-
 		UserEntity user = (UserEntity) o;
-
 		if (!getLogin().equals(user.getLogin())) {
 			return false;
 		}
-
 		return true;
 	}
 

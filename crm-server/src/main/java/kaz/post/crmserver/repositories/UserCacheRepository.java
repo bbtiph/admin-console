@@ -7,10 +7,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Spring Data JPA repository for the UserCache entity.
- */
-@SuppressWarnings("unused")
 public interface UserCacheRepository extends JpaRepository<UserCacheEntity, Long> {
 
 	Optional<UserCacheEntity> findOneByActivationKey(String activationKey);

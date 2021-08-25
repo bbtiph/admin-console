@@ -1,6 +1,6 @@
 package kaz.post.crmserver.repositories;
 
-import kaz.post.crmserver.entity.reservation.UserEntity;
+import kaz.post.crmserver.entity.UserEntity;
 import org.joda.time.DateTime;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +26,21 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
     @Transactional
     Page<UserEntity> findAll(Pageable pageable);
+
+    @Transactional
+    Page<UserEntity> findAllByIinContains(String iin, Pageable pageable);
+
+    @Transactional
+    Page<UserEntity> findAllByFirstNameContains(String firstname, Pageable pageable);
+
+    @Transactional
+    Page<UserEntity> findAllByLastNameContains(String lastname, Pageable pageable);
+
+    @Transactional
+    Page<UserEntity> findAllByMiddleNameContains(String middlename, Pageable pageable);
+
+    @Transactional
+    Page<UserEntity> findAllByMobileNumberContains(String phonenum, Pageable pageable);
 
     @Transactional
     Optional<UserEntity> findOneByIinAndConfirmedIsTrue(String iin);
