@@ -47,6 +47,7 @@ public class UserDTO extends Dto {
 	private Boolean isFl;
 	private String userRole;
 	private DateTime createdDate;
+	private Long id;
 
 	public String getCaptcha() {
 		return captcha;
@@ -60,7 +61,7 @@ public class UserDTO extends Dto {
 	}
 
 	public UserDTO(String login, String password, String firstName, String lastName, String middleName, Date birthDate, String iin, String mobileNumber, String langKey, Boolean confirmed,
-                   List<String> roles, String position, Boolean disablePush, Boolean contract, Boolean walletConfirmedOffer, Boolean enabledMobileSecurity, String employeeNumber, String userRole, DateTime createdDate) {
+                   List<String> roles, String position, Boolean disablePush, Boolean contract, Boolean walletConfirmedOffer, Boolean enabledMobileSecurity, String employeeNumber, String userRole, DateTime createdDate, Long id) {
 		super(login, iin, mobileNumber, password);
 		this.firstName = firstName;
 		this.lastName = lastName;
@@ -77,6 +78,15 @@ public class UserDTO extends Dto {
 		this.employeeNumber = employeeNumber;
 		this.userRole = userRole;
 		this.createdDate = createdDate;
+		this.id = id;
+	}
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
 	}
 
 	public String getUserRole() {

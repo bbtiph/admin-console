@@ -10,13 +10,13 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 /**
  * Spring Data JPA repository for the User entity.
  */
-@Repository
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
     @Override
@@ -86,4 +86,26 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
             @Param("login") String login,
             @Param("iin") String iin,
             @Param("mobileNumber") String mobileNumber);
+
+    @Transactional
+    @Query("SELECT u FROM UserEntity u WHERE (u.createdDate BETWEEN to_date(:start,'yyyy-MM-dd') and to_date(:end,'yyyy-MM-dd'))")
+    Page<UserEntity> findUsersBetweenTwoDate(
+            @Param("start") String start,
+            @Param("end") String end,
+            Pageable pageable);
+    @Transactional
+    @Query("SELECT u FROM UserEntity u WHERE (u.createdDate BETWEEN to_date(:start,'yyyy-MM-dd') and to_date(:end,'yyyy-MM-dd'))")
+    List<UserEntity> findUsersBetweenTwoDateWithOutPageable(
+            @Param("start") String start,
+            @Param("end") String end);
+
+    @Transactional
+    @Query("SELECT count(u) FROM UserEntity u WHERE (u.createdDate BETWEEN to_date(:start,'yyyy-MM-dd') and to_date(:end,'yyyy-MM-dd'))")
+    Long findCountUsersBetweenTwoDate(
+            @Param("start") String start,
+            @Param("end") String end);
+
+    @Transactional
+    @Query("SELECT (u) FROM UserEntity u WHERE (u.createdDate BETWEEN to_date('2020-01-01','yyyy-MM-dd') and to_date('2021-11-11','yyyy-MM-dd'))")
+    List<UserEntity> findAllwithlimit();
 }

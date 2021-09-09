@@ -32,7 +32,7 @@ public class JwtConfiguration {
     public AuthenticationWebFilter jwtAuthenticationWebFilter(JwtIssuer jwtIssuer) {
         AuthenticationWebFilter jwtAuthFilter = new AuthenticationWebFilter(new JwtAuthenticationManager(jwtIssuer));
         jwtAuthFilter.setServerAuthenticationConverter(new JwtServerAuthenticationConverter());
-        jwtAuthFilter.setRequiresAuthenticationMatcher(ServerWebExchangeMatchers.pathMatchers("/api/**","/crm-server/**"));
+        jwtAuthFilter.setRequiresAuthenticationMatcher(ServerWebExchangeMatchers.pathMatchers("/api/**","/admin-console-app/crm-server/**"));
         return jwtAuthFilter;
     }
 }

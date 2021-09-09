@@ -4,15 +4,11 @@ import com.oracle.javafx.jmx.json.JSONException;
 import kaz.post.crmserver.dto.UserDTO;
 import kaz.post.crmserver.entity.*;
 import kaz.post.crmserver.entity.UserEntity;
-import kaz.post.crmserver.repositories.AuthorityRepository;
-import kaz.post.crmserver.repositories.OrganizationRepository;
-import kaz.post.crmserver.repositories.UserAddressRepository;
-import kaz.post.crmserver.repositories.UserRepository;
+import kaz.post.crmserver.repositories.*;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,9 +17,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import javax.inject.Inject;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -33,7 +29,6 @@ import static org.hibernate.internal.util.collections.CollectionHelper.isNotEmpt
  * Service class for managing users.
  */
 @Service
-@Transactional
 public class UserService {
 
     private final Logger log = LoggerFactory.getLogger(UserService.class);
@@ -47,6 +42,8 @@ public class UserService {
     private UserAddressRepository userAddressRepository;
     @Autowired
     private OrganizationRepository organizationRepository;
+    @Autowired
+    private ReportTransactionRepository transactionRepository;
 
     public void setAuthority(AuthorityEntity authority, UserEntity newUser) {
         Set<AuthorityEntity> authorities = new HashSet<>();
@@ -133,11 +130,6 @@ public class UserService {
 		});
 	}
 
-	public String getEncryptedPassword(String password) {
-		String encryptedPassword = passwordEncoder.encode(password);
-		return encryptedPassword;
-	}
-
     public UserEntity getUserByLogin(String login) {
         log.debug("userService.getUserByLogin()");
         Optional<UserEntity> userOpt2 = userRepository.findOneByLogin(login);
@@ -147,14 +139,6 @@ public class UserService {
         } else if (userOpt2.isPresent()) {
             return userOpt2.get();
         } else return null;
-    }
-
-    public List<UserEntity> getUsersByMobileNumber(String mobileNumber) {
-        Optional<List<UserEntity>> users = userRepository.findAllByMobileNumber(mobileNumber);
-        if (!users.isPresent() && mobileNumber.length() == 11) {
-            users = userRepository.findAllByMobileNumber(mobileNumber.substring(1));
-        }
-        return users.isPresent() ? users.get() : null;
     }
 
     public ResponseEntity<List<UserDTO>> getAllUser(Map<String, String> allRequestParams) {
@@ -186,11 +170,22 @@ public class UserService {
                     .getIin(), user.getMobileNumber(), user
                     .getLangKey(), user.getConfirmed(), user.getAuthorities().stream()
                     .map(AuthorityEntity::getName)
-                    .collect(Collectors.toList()), user.getPosition(), user.getDisablePush(), user.getContract(), user.getWalletConfirmedOffer(), user.getEnabledMobileSecurity(), user.getEmployeeNumber(), null, user.getCreatedDate());
+                    .collect(Collectors.toList()), user.getPosition(), user.getDisablePush(), user.getContract(), user.getWalletConfirmedOffer(), user.getEnabledMobileSecurity(), user.getEmployeeNumber(), null, user.getCreatedDate(), user.getId());
 //            System.out.println("userDTO " + userDTO);
             userDTOList.add(userDTO);
         }
         return new ResponseEntity<>(userDTOList, HttpStatus.OK);
+    }
+
+    public Long idGenerate() {
+        Date dNow = new Date();
+        SimpleDateFormat format = new SimpleDateFormat("yyMMddhhmmss");
+        String unique = format.format(dNow);
+        String uniqueNum="";
+        for (int i=0; i<unique.length(); i++) {
+            uniqueNum+=unique.charAt(i);
+        }
+        return Long.parseLong(uniqueNum);
     }
 
     public ResponseEntity<List<UserDTO>> searchingWithFilter(Map<String, String> allRequestParams) {
@@ -268,14 +263,108 @@ public class UserService {
                     .map(AuthorityEntity::getName)
                     .collect(Collectors.toList()), user.getPosition(), user.getDisablePush(), user.getContract(),
                     user.getWalletConfirmedOffer(), user.getEnabledMobileSecurity(),
-                    user.getEmployeeNumber(), null, user.getCreatedDate());
+                    user.getEmployeeNumber(), null, user.getCreatedDate(), user.getId());
             userDTOList.add(userDTO);
         }
         return new ResponseEntity<>(userDTOList, HttpStatus.OK);
     }
 
+    public ResponseEntity<List<UserDTO>> getReportByUser(Map<String, String> allRequestParams) throws ParseException {
+        Sort.Direction sortDirection = Sort.Direction.ASC;
+        ReportTransactionEntity transactionEntity = new ReportTransactionEntity();
+
+        int pageNumber = 0;
+        int pageSize = 5;
+        String startDate = null;
+        String endDate = null;
+        Boolean isFullInf = null;
+        String sortBy = "id";
+        if (allRequestParams.containsKey("page")) {
+            pageNumber = Integer.parseInt(allRequestParams.get("page"));
+        }
+        if (allRequestParams.containsKey("size")) {
+            pageSize = Integer.parseInt(allRequestParams.get("size"));
+        }
+        if (allRequestParams.containsKey("start")) {
+            startDate = (allRequestParams.get("start"));
+        }
+        if (allRequestParams.containsKey("end")) {
+            endDate = (allRequestParams.get("end"));
+        }
+        if (allRequestParams.containsKey("isFullInf")) {
+            isFullInf = Boolean.parseBoolean(allRequestParams.get("isFullInf"));
+        }
+
+        transactionEntity.setId(idGenerate());
+        transactionEntity.setFromDate(startDate);
+        transactionEntity.setNameOfTransaction("Отчет по пользователям");
+        transactionEntity.setToDate(endDate);
+        transactionEntity.setLinkOfExcel("post.kz/admin/console/" + transactionEntity.getId());
+        transactionEntity.setTypeReport(1);
+        transactionRepository.saveAndFlush(transactionEntity);
+
+
+        System.out.println(startDate + " <rr> " + endDate);
+        if (allRequestParams.containsKey("sortDirection")) {
+            if (allRequestParams.get("sortDirection").equals("desc"))
+                sortDirection = Sort.Direction.DESC;
+        }
+        if (allRequestParams.containsKey("sort")) {
+            sortBy = allRequestParams.get("sort");
+        }
+        final Pageable pageableRequest = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy).descending());
+        List<UserDTO> userDTOList = new ArrayList<>();
+
+        if (isFullInf != null) {
+            List<UserEntity> users = null;
+            users = userRepository.findUsersBetweenTwoDateWithOutPageable(startDate, endDate);
+            for (UserEntity user : users) {
+                UserDTO userDTO = new UserDTO(user.getLogin(),
+                        null, user.getFirstName(), user.getLastName(), user
+                        .getMiddleName(), user.getBirthDate(), user
+                        .getIin(), user.getMobileNumber(), user
+                        .getLangKey(), user.getConfirmed(), user.getAuthorities().stream()
+                        .map(AuthorityEntity::getName)
+                        .collect(Collectors.toList()), user.getPosition(), user.getDisablePush(), user.getContract(),
+                        user.getWalletConfirmedOffer(), user.getEnabledMobileSecurity(),
+                        user.getEmployeeNumber(), null, user.getCreatedDate(),user.getId());
+                userDTOList.add(userDTO);
+            }
+        }else {
+            Page<UserEntity> users = null;
+            users = userRepository.findUsersBetweenTwoDate(startDate, endDate, pageableRequest);
+            for (UserEntity user : users) {
+                UserDTO userDTO = new UserDTO(user.getLogin(),
+                        null, user.getFirstName(), user.getLastName(), user
+                        .getMiddleName(), user.getBirthDate(), user
+                        .getIin(), user.getMobileNumber(), user
+                        .getLangKey(), user.getConfirmed(), user.getAuthorities().stream()
+                        .map(AuthorityEntity::getName)
+                        .collect(Collectors.toList()), user.getPosition(), user.getDisablePush(), user.getContract(),
+                        user.getWalletConfirmedOffer(), user.getEnabledMobileSecurity(),
+                        user.getEmployeeNumber(), null, user.getCreatedDate(),user.getId());
+                userDTOList.add(userDTO);
+            }
+        }
+
+
+        return new ResponseEntity<>(userDTOList, HttpStatus.OK);
+    }
+
     public Long countUser() {
         return userRepository.countUser();
+    }
+
+    public Long countReportByUser(Map<String, String> allRequestParams) {
+        String startDate = null;
+        String endDate = null;
+        if (allRequestParams.containsKey("start")) {
+            startDate = (allRequestParams.get("start"));
+        }
+        if (allRequestParams.containsKey("end")) {
+            endDate = (allRequestParams.get("end"));
+        }
+        return userRepository.findCountUsersBetweenTwoDate(startDate, endDate);
     }
 
     public Optional<UserEntity> getByLoginAndMobileNumber(String login, String mobileNumber) {
