@@ -4,7 +4,7 @@ import com.oracle.javafx.jmx.json.JSONException;
 import kaz.post.crmserver.dto.UserDTO;
 import kaz.post.crmserver.entity.*;
 import kaz.post.crmserver.entity.UserEntity;
-import kaz.post.crmserver.repositories.*;
+import kaz.post.crmserver.repositories.mail.*;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -243,13 +243,7 @@ public class UserService {
                 break;
         }
 
-        System.out.println("uers>> ");
-        for (UserEntity user : users) {
-            System.out.println("us -> " + user);
-        }
-
         if (input.length() == 0 || input == null || input.isEmpty()) {
-            System.out.println("sss");
             users = userRepository.findAll(pageableRequest);
         }
 

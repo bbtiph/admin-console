@@ -8,7 +8,7 @@ import kaz.post.crmserver.dto.UserDTO;
 import kaz.post.crmserver.entity.ReportTransactionEntity;
 import kaz.post.crmserver.entity.UserEntity;
 import kaz.post.crmserver.exceptions.RegistrationException;
-import kaz.post.crmserver.repositories.ReportTransactionRepository;
+import kaz.post.crmserver.repositories.mail.ReportTransactionRepository;
 import kaz.post.crmserver.service.AccountService;
 import kaz.post.crmserver.service.ReportService;
 import kaz.post.crmserver.service.UserService;
@@ -17,9 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.io.IOException;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Map;
@@ -27,7 +25,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
-public class AccountResource {
+public class AccountController {
 
     @Autowired
     private UserService userService;

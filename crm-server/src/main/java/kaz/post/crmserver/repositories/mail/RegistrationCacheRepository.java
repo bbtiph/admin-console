@@ -1,4 +1,4 @@
-package kaz.post.crmserver.repositories;
+package kaz.post.crmserver.repositories.mail;
 
 import kaz.post.crmserver.entity.RegistrationCacheEntity;
 import org.springframework.data.jpa.repository.JpaRepository;

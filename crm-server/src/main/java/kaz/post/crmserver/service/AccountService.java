@@ -11,7 +11,7 @@ import kaz.post.crmserver.entity.UserEntity;
 import kaz.post.crmserver.exceptions.MsgParam;
 import kaz.post.crmserver.exceptions.RegExceptionType;
 import kaz.post.crmserver.exceptions.RegistrationException;
-import kaz.post.crmserver.repositories.*;
+import kaz.post.crmserver.repositories.mail.*;
 import kaz.post.crmserver.util.MailAppUtils;
 import kaz.post.crmserver.util.RandomUtil;
 import org.apache.commons.lang.StringUtils;

@@ -13,11 +13,20 @@ eureka:
 spring:
     application:
         name: crm-server
-    datasource:
-        username: mailapp
-        password: Qwerty321
-        url: jdbc:postgresql://172.30.84.136:5432/mailapp
-        driver-class-name: org.postgresql.Driver
+    main:
+        allow-bean-definition-overriding: true
+    mail-app:
+        datasource:
+            username: mailapp
+            password: Qwerty321
+            url: jdbc:postgresql://172.30.84.136:5432/mailapp
+            driver-class-name: org.postgresql.Driver
+    payment:
+        datasource:
+            username: mailapp
+            password: Qwerty321
+            url: jdbc:postgresql://172.30.84.136:5432/cabinet
+            driver-class-name: org.postgresql.Driver
     jpa:
         properties:
             hibernate:

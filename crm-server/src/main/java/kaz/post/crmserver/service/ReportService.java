@@ -1,9 +1,8 @@
 package kaz.post.crmserver.service;
 
 import kaz.post.crmserver.dto.ReportByTransactionDto;
-import kaz.post.crmserver.dto.UserDTO;
 import kaz.post.crmserver.entity.*;
-import kaz.post.crmserver.repositories.*;
+import kaz.post.crmserver.repositories.mail.ReportTransactionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

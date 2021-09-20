@@ -1,4 +1,4 @@
-package kaz.post.crmserver.repositories;
+package kaz.post.crmserver.repositories.mail;
 
 import kaz.post.crmserver.entity.UserEntity;
 import org.joda.time.DateTime;
