@@ -8,6 +8,7 @@ import kaz.post.crmserver.entity.ReportTransactionEntity;
 import kaz.post.crmserver.entity.UserEntity;
 import kaz.post.crmserver.entity.payment.OfflineOperator;
 import kaz.post.crmserver.entity.payment.Operators;
+import kaz.post.crmserver.exceptions.MsgParam;
 import kaz.post.crmserver.repositories.mail.ReportTransactionRepository;
 import kaz.post.crmserver.repositories.payment.OfflineOperatorsRepository;
 import kaz.post.crmserver.repositories.payment.OperatorsRepository;
@@ -25,10 +26,7 @@ import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -72,20 +70,29 @@ public class OperatorsService {
         final Pageable pageableRequest = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy).descending());
         System.out.println(pageableRequest + ">>> ttt <<<" + input + " " + " <> " + field);
         Page<OfflineOperator> offlineOperators = null;
+        Boolean type = null;
         switch (field) {
             case "NAME_OF_SERVICE":
                 offlineOperators = offlineOperatorsRepository.findAllByContractorNameContains(input, pageableRequest);
                 break;
 
-//            case "TYPE":
-//                Boolean type = false;
-//                if (input == "true") type =true;
-//                offlineOperators = offlineOperatorsRepository.findAllByOnline(type, pageableRequest);
-//                break;
-//
-//            case "IS_ACTIVE":
-//                offlineOperators = offlineOperatorsRepository.findAllByMiddleNameContains(input, pageableRequest);
-//                break;
+            case "TYPE":
+                if (input.equals("true")) {
+                    type = true;
+                } else if (input.equals("false")) {
+                    type = false;
+                }
+                offlineOperators = offlineOperatorsRepository.findAllByOnline(type, pageableRequest);
+                break;
+
+            case "IS_ACTIVE":;
+                if (input.equals("true")) {
+                    type = true;
+                } else if (input.equals("false")) {
+                    type = false;
+                }
+                offlineOperators = offlineOperatorsRepository.findAllByEnabled(type, pageableRequest);
+                break;
 
             default:
                 offlineOperators = offlineOperatorsRepository.findAll(pageableRequest);
@@ -110,5 +117,17 @@ public class OperatorsService {
         System.out.println(offlineOperatorsRepository.getAllOperatorsCount() + ">>rr");
         return offlineOperatorsRepository.getAllOperatorsCount();
     }
+
+    public ResponseEntity<?> saveService(OperatorsDto operatorsDto){
+        offlineOperatorsRepository.findById(operatorsDto.getId()).ifPresent(operator -> {
+            operator.setEnabled(operatorsDto.isEnabledd());
+            operator.setOnline(operatorsDto.getOnlinee());
+            offlineOperatorsRepository.save(operator);
+        });
+
+        return new ResponseEntity<>("OK", HttpStatus.OK);
+
+    }
+
 
 }

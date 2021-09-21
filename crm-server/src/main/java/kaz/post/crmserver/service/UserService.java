@@ -126,6 +126,7 @@ public class UserService {
 			String encryptedPassword = passwordEncoder.encode(password);
 			u.setPassword(encryptedPassword);
 			userRepository.save(u);
+			userRepository.save(u);
 			log.debug("Changed password for User: {}", u);
 		});
 	}
