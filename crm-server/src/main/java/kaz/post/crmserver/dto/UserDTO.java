@@ -46,8 +46,10 @@ public class UserDTO extends Dto {
 	private String employeeNumber;
 	private Boolean isFl;
 	private String userRole;
+	private String login;
 	private DateTime createdDate;
 	private Long id;
+	private boolean activated;
 
 	public String getCaptcha() {
 		return captcha;
@@ -61,8 +63,9 @@ public class UserDTO extends Dto {
 	}
 
 	public UserDTO(String login, String password, String firstName, String lastName, String middleName, Date birthDate, String iin, String mobileNumber, String langKey, Boolean confirmed,
-                   List<String> roles, String position, Boolean disablePush, Boolean contract, Boolean walletConfirmedOffer, Boolean enabledMobileSecurity, String employeeNumber, String userRole, DateTime createdDate, Long id) {
+                   List<String> roles, String position, Boolean disablePush, Boolean contract, Boolean walletConfirmedOffer, Boolean enabledMobileSecurity, String employeeNumber, String userRole, DateTime createdDate, Long id, String email, boolean activated) {
 		super(login, iin, mobileNumber, password);
+		this.login = login;
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.middleName = middleName;
@@ -79,6 +82,8 @@ public class UserDTO extends Dto {
 		this.userRole = userRole;
 		this.createdDate = createdDate;
 		this.id = id;
+		this.email = email;
+		this.activated = activated;
 	}
 
 	public Long getId() {
@@ -113,12 +118,14 @@ public class UserDTO extends Dto {
 		super.setPassword(password);
 	}
 
+	@Override
 	public String getLogin() {
-		return super.getLogin();
+		return login;
 	}
 
+	@Override
 	public void setLogin(String login) {
-		super.setLogin(login);
+		this.login = login;
 	}
 
 	public String getFirstName() {
@@ -323,6 +330,14 @@ public class UserDTO extends Dto {
 
 	public void setFl(Boolean fl) {
 		isFl = fl;
+	}
+
+	public boolean isActivated() {
+		return activated;
+	}
+
+	public void setActivated(boolean activated) {
+		this.activated = activated;
 	}
 
 	@Override

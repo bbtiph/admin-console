@@ -77,18 +77,18 @@ public class OperatorsService {
                 break;
 
             case "TYPE":
-                if (input.equals("true")) {
+                if (input.equals("true") ||  input.equals("Да") || input.equals("да")) {
                     type = true;
-                } else if (input.equals("false")) {
+                } else if (input.equals("false") ||  input.equals("Нет") || input.equals("нет")) {
                     type = false;
                 }
                 offlineOperators = offlineOperatorsRepository.findAllByOnline(type, pageableRequest);
                 break;
 
             case "IS_ACTIVE":;
-                if (input.equals("true")) {
+                if (input.equals("true") ||  input.equals("Online") || input.equals("online")) {
                     type = true;
-                } else if (input.equals("false")) {
+                } else if (input.equals("false") ||  input.equals("Offline") || input.equals("offline")) {
                     type = false;
                 }
                 offlineOperators = offlineOperatorsRepository.findAllByEnabled(type, pageableRequest);

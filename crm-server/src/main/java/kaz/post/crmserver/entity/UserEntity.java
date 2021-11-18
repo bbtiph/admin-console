@@ -133,6 +133,14 @@ public class UserEntity extends AbstractUserEntity implements Serializable {
 		this.addressList = addressList;
 	}
 
+	public boolean isActivated() {
+		return activated;
+	}
+
+	public void setActivated(boolean activated) {
+		this.activated = activated;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {

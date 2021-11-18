@@ -1,6 +1,5 @@
 package kaz.post.crmserver.service;
 
-import com.oracle.javafx.jmx.json.JSONException;
 import kaz.post.crmserver.dto.UserDTO;
 import kaz.post.crmserver.entity.*;
 import kaz.post.crmserver.entity.UserEntity;
@@ -53,7 +52,7 @@ public class UserService {
 
     public UserEntity createUserInformation(String login, String password, String firstName, String lastName,
                                             String middleName, Date birthDate, String iin, String mobileNumber,
-                                            String langKey, String organizationBin, UserCacheEntity cachedUser, String userRole) throws JSONException {
+                                            String langKey, String organizationBin, UserCacheEntity cachedUser, String userRole) {
         UserEntity newUser = new UserEntity();
 
         Optional<OrganizationEntity> optionalOrganization;
@@ -171,7 +170,10 @@ public class UserService {
                     .getIin(), user.getMobileNumber(), user
                     .getLangKey(), user.getConfirmed(), user.getAuthorities().stream()
                     .map(AuthorityEntity::getName)
-                    .collect(Collectors.toList()), user.getPosition(), user.getDisablePush(), user.getContract(), user.getWalletConfirmedOffer(), user.getEnabledMobileSecurity(), user.getEmployeeNumber(), null, user.getCreatedDate(), user.getId());
+                    .collect(Collectors.toList()), user.getPosition(), user.getDisablePush(), user.getContract(),
+                    user.getWalletConfirmedOffer(), user.getEnabledMobileSecurity(), user.getEmployeeNumber(), null,
+                    user.getCreatedDate(), user.getId(), user.getEmail(), user.isActivated()
+            );
 //            System.out.println("userDTO " + userDTO);
             userDTOList.add(userDTO);
         }
@@ -258,7 +260,7 @@ public class UserService {
                     .map(AuthorityEntity::getName)
                     .collect(Collectors.toList()), user.getPosition(), user.getDisablePush(), user.getContract(),
                     user.getWalletConfirmedOffer(), user.getEnabledMobileSecurity(),
-                    user.getEmployeeNumber(), null, user.getCreatedDate(), user.getId());
+                    user.getEmployeeNumber(), null, user.getCreatedDate(), user.getId(), user.getEmail(), user.isActivated());
             userDTOList.add(userDTO);
         }
         return new ResponseEntity<>(userDTOList, HttpStatus.OK);
@@ -322,7 +324,7 @@ public class UserService {
                         .map(AuthorityEntity::getName)
                         .collect(Collectors.toList()), user.getPosition(), user.getDisablePush(), user.getContract(),
                         user.getWalletConfirmedOffer(), user.getEnabledMobileSecurity(),
-                        user.getEmployeeNumber(), null, user.getCreatedDate(),user.getId());
+                        user.getEmployeeNumber(), null, user.getCreatedDate(),user.getId(), user.getEmail(), user.isActivated());
                 userDTOList.add(userDTO);
             }
         }else {
@@ -337,7 +339,7 @@ public class UserService {
                         .map(AuthorityEntity::getName)
                         .collect(Collectors.toList()), user.getPosition(), user.getDisablePush(), user.getContract(),
                         user.getWalletConfirmedOffer(), user.getEnabledMobileSecurity(),
-                        user.getEmployeeNumber(), null, user.getCreatedDate(),user.getId());
+                        user.getEmployeeNumber(), null, user.getCreatedDate(),user.getId(), user.getEmail(),user.isActivated());
                 userDTOList.add(userDTO);
             }
         }
