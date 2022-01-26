@@ -35,7 +35,7 @@ public class SecurityConfiguration {
                 .httpBasic().disable()
                 .logout().disable()
                 .authorizeExchange()
-                .pathMatchers("/auth/login")
+                .pathMatchers("/auth/login", "/admin-console-app/crm-server/api/download-excel-report-by-link/**")
                 .permitAll()
                 .and()
                 .authorizeExchange().pathMatchers("/api/hello")

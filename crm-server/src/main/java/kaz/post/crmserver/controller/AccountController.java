@@ -1,10 +1,7 @@
 package kaz.post.crmserver.controller;
 
 import io.swagger.annotations.ApiParam;
-import kaz.post.crmserver.dto.ChangePasswordDto;
-import kaz.post.crmserver.dto.LoginsDto;
-import kaz.post.crmserver.dto.ReportByTransactionDto;
-import kaz.post.crmserver.dto.UserDTO;
+import kaz.post.crmserver.dto.*;
 import kaz.post.crmserver.entity.ReportTransactionEntity;
 import kaz.post.crmserver.entity.UserEntity;
 import kaz.post.crmserver.exceptions.RegistrationException;
@@ -17,11 +14,12 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.io.IOException;
 import java.text.ParseException;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api")
@@ -35,6 +33,8 @@ public class AccountController {
     private ReportService reportService;
     @Autowired
     private ReportTransactionRepository reportTransactionRepository;
+    @Autowired
+    private ReportTransactionRepository transactionRepository;
 
     private final String USER_TYPE = "USER";
 
@@ -113,20 +113,74 @@ public class AccountController {
         return reportService.countReportByTransaction(allRequestParams);
     }
 
-    @RequestMapping(value = "/download-excel-report-by-link", method = RequestMethod.GET)
-    public ResponseEntity<?> downloadExcelReportByLink(@ApiParam(hidden = true) @RequestParam Map<String, String> allRequestParams) throws ParseException {
-        Optional<ReportTransactionEntity> transactionEntity = reportTransactionRepository.findById(Long.parseLong(allRequestParams.get("id")));
+    @RequestMapping(value = "/download-excel-report-by-link/{id}", method = RequestMethod.GET)
+    public void downloadExcelReportByLink(@PathVariable int id, HttpServletResponse response) throws IOException, ParseException {
+        Map<String, String> allRequestParams = new HashMap<>();
+        Optional<ReportTransactionEntity> transactionEntity = reportTransactionRepository.findById(Long.valueOf(id));
         allRequestParams.put("start", transactionEntity.get().getFromDate());
         allRequestParams.put("end", transactionEntity.get().getToDate());
         allRequestParams.put("isFullInf", "true");
         switch (transactionEntity.get().getTypeReport()) {
             case 1:
-                return userService.getReportByUser(allRequestParams);
+                reportService.reportToUsers(allRequestParams, response);
+                break;
 
-            case 2:
-                return reportService.getReportByTransaction(allRequestParams);
+            case 3:
+                exportToExcelOKT(Integer.valueOf(transactionEntity.get().getFromDate().substring(0,4)), response);
+                break;
         }
-        return null;
+    }
+
+
+
+    @GetMapping("/export-by-okt/excel")
+    public void exportToExcelOKT(int year, HttpServletResponse response) throws IOException {
+        reportService.reportToYear(year, response);
+    }
+
+    @GetMapping("/export-by-users/excel")
+    public void exportToExcelUsers(int year, HttpServletResponse response) throws IOException {
+        reportService.reportToYear(year, response);
+    }
+
+    @GetMapping("/start-report-history")
+    public void saveHistory(@ApiParam(hidden = true) @RequestParam Map<String, String> allRequestParams) throws IOException {
+        ReportTransactionEntity transactionEntity = new ReportTransactionEntity();
+
+        String startDate = null;
+        String endDate = null;
+        String typeReport = null;
+        String nameOfTransaction = null;
+        if (allRequestParams.containsKey("start")) startDate = (allRequestParams.get("start"));
+        if (allRequestParams.containsKey("end")) endDate = (allRequestParams.get("end"));
+        if (allRequestParams.containsKey("type")) typeReport = (allRequestParams.get("type"));
+        switch (Integer.valueOf(typeReport)) {
+            case 1:
+                nameOfTransaction = "Отчет по пользователям";
+                break;
+
+            case 3:
+                nameOfTransaction = "Выгрузка статических данных";
+                break;
+        }
+        Date dNow = new Date();
+        SimpleDateFormat format = new SimpleDateFormat("yyMMddhhmmss");
+        String unique = format.format(dNow);
+        String uniqueNum="";
+        for (int i=0; i<unique.length(); i++)
+            uniqueNum+=unique.charAt(i);
+        transactionEntity.setId(Long.parseLong(uniqueNum));
+        transactionEntity.setFromDate(startDate);
+        transactionEntity.setNameOfTransaction(nameOfTransaction);
+        transactionEntity.setToDate(endDate);
+        transactionEntity.setLinkOfExcel("post.kz/admin/console/" + transactionEntity.getId());
+        transactionEntity.setTypeReport(Integer.valueOf(typeReport));
+        transactionRepository.saveAndFlush(transactionEntity);
+    }
+
+    @GetMapping("/get-report-by-okt/{year}")
+    public List<ReportOKTDto> getReportByOKT(@PathVariable int year) throws IOException {
+        return reportService.getListOKT(year);
     }
 
 }

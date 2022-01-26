@@ -1,8 +1,12 @@
 package kaz.post.crmserver.service;
 
 import kaz.post.crmserver.dto.ReportByTransactionDto;
+import kaz.post.crmserver.dto.ReportOKTDto;
+import kaz.post.crmserver.dto.UserDTO;
 import kaz.post.crmserver.entity.*;
-import kaz.post.crmserver.repositories.mail.ReportTransactionRepository;
+import kaz.post.crmserver.exportData.ExportData;
+import kaz.post.crmserver.exportData.ExportDataUsers;
+import kaz.post.crmserver.repositories.mail.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +18,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -29,7 +36,28 @@ public class ReportService {
     private final Logger log = LoggerFactory.getLogger(ReportService.class);
 
     @Autowired
+    private UserService userService;
+
+    @Autowired
     private ReportTransactionRepository reportTransactionRepository;
+
+    @Autowired
+    private ParcelLogRepository parcelLogRepository;
+    @Autowired
+    private PaymentCardRepository paymentCardRepository;
+    @Autowired
+    private BatchPackageRepository batchPackageRepository;
+    @Autowired
+    private BookingRepository bookingRepository;
+    @Autowired
+    private CallCourierRepository callCourierRepository;
+    @Autowired
+    private OrganizationRepository organizationRepository;
+    @Autowired
+    private TrackingRepository trackingRepository;
+    @Autowired
+    private UserRepository userRepository;
+
 
 
     public Long idGenerate() {
@@ -54,9 +82,10 @@ public class ReportService {
                 + "\"status\":\"ok\"}", HttpStatus.CREATED);
     }
 
+
+
     public ResponseEntity<List<ReportByTransactionDto>> getReportByTransaction(Map<String, String> allRequestParams) throws ParseException {
         Sort.Direction sortDirection = Sort.Direction.ASC;
-        ReportTransactionEntity transactionEntity = new ReportTransactionEntity();
 
         int pageNumber = 0;
         int pageSize = 5;
@@ -86,14 +115,6 @@ public class ReportService {
         if (allRequestParams.containsKey("sort")) {
             sortBy = allRequestParams.get("sort");
         }
-
-        transactionEntity.setId(idGenerate());
-        transactionEntity.setFromDate(startDate);
-        transactionEntity.setNameOfTransaction("Отчет по проведенным транзакциям");
-        transactionEntity.setToDate(endDate);
-        transactionEntity.setLinkOfExcel("post.kz/admin/console/" + transactionEntity.getId());
-        transactionEntity.setTypeReport(2);
-        reportTransactionRepository.saveAndFlush(transactionEntity);
 
         final Pageable pageableRequest = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy).descending());
 
@@ -131,6 +152,146 @@ public class ReportService {
             endDate = (allRequestParams.get("end"));
         }
         return reportTransactionRepository.findCountTransactionsBetweenTwoDate(startDate, endDate);
+    }
+
+    public void reportToYear(int year, HttpServletResponse response) throws IOException {
+        response.setContentType("application/excel");
+        DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
+        String currentDateTime = dateFormatter.format(new Date());
+
+        String headerKey = "Content-Disposition";
+        String headerValue = "attachment; filename=report_" + currentDateTime + ".xlsx";
+        response.setHeader(headerKey, headerValue);
+
+        List<ReportOKTDto> res = new ArrayList<>();
+        res  = getListOKT(year);
+
+
+        ExportData excelExporter = new ExportData(res);
+
+
+        excelExporter.export(response);
+    }
+
+    public void reportToUsers(Map<String, String> allRequestParams, HttpServletResponse response) throws IOException, ParseException {
+        response.setContentType("application/excel");
+        DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
+        String currentDateTime = dateFormatter.format(new Date());
+
+        String headerKey = "Content-Disposition";
+        String headerValue = "attachment; filename=report_" + currentDateTime + ".xlsx";
+        response.setHeader(headerKey, headerValue);
+
+        List<UserDTO> res = new ArrayList<>();
+        res  = userService.getUsers(allRequestParams);
+
+
+        ExportDataUsers excelExporter = new ExportDataUsers(res);
+
+
+        excelExporter.export(response);
+    }
+
+    public List<ReportOKTDto> getListOKT(int year) {
+        List<ReportOKTDto> res = new ArrayList<>();
+        ReportOKTDto col1 = new ReportOKTDto();
+        col1.setName("Перенаправлений на почтомат");
+        res.add(col1);
+        ReportOKTDto col2 = new ReportOKTDto();
+        col2.setName("Перенаправлений на дом");
+        res.add(col2);
+        ReportOKTDto col3 = new ReportOKTDto();
+        col3.setName("Перенаправлений на супермаркет");
+        ReportOKTDto col4 = new ReportOKTDto();
+        col4.setName("Заявкана выпуск карт ");
+        ReportOKTDto col5 = new ReportOKTDto();
+        col5.setName("Бронирование ");
+        ReportOKTDto col6 = new ReportOKTDto();
+        col6.setName("Поиск по ШПИ номеру");
+        ReportOKTDto col7 = new ReportOKTDto();
+        col7.setName("Трекинг");
+        ReportOKTDto col8 = new ReportOKTDto();
+        col8.setName("Предзаполение EMS");
+        ReportOKTDto col9 = new ReportOKTDto();
+        col9.setName("Регистрация");
+        ReportOKTDto col10 = new ReportOKTDto();
+        col10.setName("Адресный ярлык Посылок  и Заказных писем");
+        ReportOKTDto col11 = new ReportOKTDto();
+        col11.setName("Вызов курьера ");
+        ReportOKTDto col12 = new ReportOKTDto();
+        col12.setName("Партионный трекинг");
+
+        for (int i=1; i<13; i++) {
+            col3.getMonthCount().add(
+                    parcelLogRepository.getCountByMonth(
+                            String.valueOf(year) + (i < 10 ? "0" : "") + String.valueOf(i) + "01",
+                            String.valueOf(year) + (i < 10 ? "0" : "") + String.valueOf(i == 12 ? "01" : i+1) + "01")
+            );
+        }
+        res.add(col3);
+
+        for (int i=1; i<13; i++) {
+            col4.getMonthCount().add(
+                    paymentCardRepository.getCountByMonth(
+                            String.valueOf(year) + (i < 10 ? "0" : "") + String.valueOf(i) + "01",
+                            String.valueOf(year) + (i < 10 ? "0" : "") + String.valueOf(i == 12 ? "01" : i+1) + "01")
+            );
+        }
+        res.add(col4);
+
+        for (int i=1; i<13; i++) {
+            col5.getMonthCount().add(
+                    bookingRepository.getCountByMonth(
+                            String.valueOf(year) + (i < 10 ? "0" : "") + String.valueOf(i) + "01",
+                            String.valueOf(year) + (i < 10 ? "0" : "") + String.valueOf(i == 12 ? "01" : i+1) + "01")
+            );
+        }
+        res.add(col5);
+
+        for (int i=1; i<13; i++) {
+            col7.getMonthCount().add(
+                    trackingRepository.getCountByMonth(
+                            String.valueOf(year) + (i < 10 ? "0" : "") + String.valueOf(i) + "01",
+                            String.valueOf(year) + (i < 10 ? "0" : "") + String.valueOf(i == 12 ? "01" : i+1) + "01")
+            );
+        }
+        res.add(col6);
+        res.add(col7);
+        res.add(col8);
+
+        for (int i=1; i<13; i++) {
+            col9.getMonthCount().add(
+                    userRepository.getCountByMonth(
+                            String.valueOf(year) + (i < 10 ? "0" : "") + String.valueOf(i) + "01",
+                            String.valueOf(year) + (i < 10 ? "0" : "") + String.valueOf(i == 12 ? "01" : i+1) + "01"
+                    ) +
+                            organizationRepository.getCountByMonth(
+                                    String.valueOf(year) + (i < 10 ? "0" : "") + String.valueOf(i) + "01",
+                                    String.valueOf(year) + (i < 10 ? "0" : "") + String.valueOf(i == 12 ? "01" : i+1) + "01"
+                            )
+            );
+        }
+        res.add(col9);
+
+        for (int i=1; i<13; i++) {
+            col10.getMonthCount().add(
+                    batchPackageRepository.getCountByMonth(
+                            String.valueOf(year) + (i < 10 ? "0" : "") + String.valueOf(i) + "01",
+                            String.valueOf(year) + (i < 10 ? "0" : "") + String.valueOf(i == 12 ? "01" : i+1) + "01")
+            );
+        }
+        res.add(col10);
+
+        for (int i=1; i<13; i++) {
+            col11.getMonthCount().add(
+                    callCourierRepository.getCountByMonth(
+                            String.valueOf(year) + (i < 10 ? "0" : "") + String.valueOf(i) + "01",
+                            String.valueOf(year) + (i < 10 ? "0" : "") + String.valueOf(i == 12 ? "01" : i+1) + "01")
+            );
+        }
+        res.add(col11);
+        res.add(col12);
+        return res;
     }
 
 }

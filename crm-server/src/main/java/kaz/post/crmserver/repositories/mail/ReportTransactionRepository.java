@@ -18,20 +18,20 @@ import java.util.List;
 public interface ReportTransactionRepository extends JpaRepository<ReportTransactionEntity, Long> {
 
     @Transactional
-    @Query("SELECT u FROM ReportTransactionEntity u WHERE (u.transactionDate BETWEEN to_date(:start,'yyyy-MM-dd') and to_date(:end,'yyyy-MM-dd'))")
+    @Query("SELECT u FROM ReportTransactionEntity u")
     Page<ReportTransactionEntity> findTransactionsBetweenTwoDate(
             @Param("start") String start,
             @Param("end") String end,
             Pageable pageable);
 
     @Transactional
-    @Query("SELECT u FROM ReportTransactionEntity u WHERE (u.transactionDate BETWEEN to_date(:start,'yyyy-MM-dd') and to_date(:end,'yyyy-MM-dd'))")
+    @Query("SELECT u FROM ReportTransactionEntity u")
     List<ReportTransactionEntity> findTransactionsBetweenTwoDateWithOutPageable(
             @Param("start") String start,
             @Param("end") String end);
 
     @Transactional
-    @Query("SELECT count(u) FROM ReportTransactionEntity u WHERE (u.transactionDate BETWEEN to_date(:start,'yyyy-MM-dd') and to_date(:end,'yyyy-MM-dd'))")
+    @Query("SELECT count(u) FROM ReportTransactionEntity u")
     Long findCountTransactionsBetweenTwoDate(
             @Param("start") String start,
             @Param("end") String end);

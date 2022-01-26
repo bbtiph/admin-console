@@ -191,6 +191,30 @@ public class UserService {
         return Long.parseLong(uniqueNum);
     }
 
+    public List<UserDTO> getUsers() {
+        int pageNumber = 0;
+        int pageSize = 5;
+        String sortBy = "id";
+        final Pageable pageableRequest = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy).descending());
+        Page<UserEntity> users = userRepository.findAll(pageableRequest);
+        List<UserDTO> userDTOList = new ArrayList<>();
+        for (UserEntity user : users) {
+            UserDTO userDTO = new UserDTO(user.getLogin(),
+                    null, user.getFirstName(), user.getLastName(), user
+                    .getMiddleName(), user.getBirthDate(), user
+                    .getIin(), user.getMobileNumber(), user
+                    .getLangKey(), user.getConfirmed(), user.getAuthorities().stream()
+                    .map(AuthorityEntity::getName)
+                    .collect(Collectors.toList()), user.getPosition(), user.getDisablePush(), user.getContract(),
+                    user.getWalletConfirmedOffer(), user.getEnabledMobileSecurity(), user.getEmployeeNumber(), null,
+                    user.getCreatedDate(), user.getId(), user.getEmail(), user.isActivated()
+            );
+//            System.out.println("userDTO " + userDTO);
+            userDTOList.add(userDTO);
+        }
+        return userDTOList;
+    }
+
     public ResponseEntity<List<UserDTO>> searchingWithFilter(Map<String, String> allRequestParams) {
         Sort.Direction sortDirection = Sort.Direction.ASC;
         int pageNumber = 0;
@@ -346,6 +370,78 @@ public class UserService {
 
 
         return new ResponseEntity<>(userDTOList, HttpStatus.OK);
+    }
+
+    public List<UserDTO> getUsers(Map<String, String> allRequestParams) throws ParseException {
+        Sort.Direction sortDirection = Sort.Direction.ASC;
+
+        int pageNumber = 0;
+        int pageSize = 5;
+        String startDate = null;
+        String endDate = null;
+        Boolean isFullInf = null;
+        String sortBy = "id";
+        if (allRequestParams.containsKey("page")) {
+            pageNumber = Integer.parseInt(allRequestParams.get("page"));
+        }
+        if (allRequestParams.containsKey("size")) {
+            pageSize = Integer.parseInt(allRequestParams.get("size"));
+        }
+        if (allRequestParams.containsKey("start")) {
+            startDate = (allRequestParams.get("start"));
+        }
+        if (allRequestParams.containsKey("end")) {
+            endDate = (allRequestParams.get("end"));
+        }
+        if (allRequestParams.containsKey("isFullInf")) {
+            isFullInf = Boolean.parseBoolean(allRequestParams.get("isFullInf"));
+        }
+
+
+        if (allRequestParams.containsKey("sortDirection")) {
+            if (allRequestParams.get("sortDirection").equals("desc"))
+                sortDirection = Sort.Direction.DESC;
+        }
+        if (allRequestParams.containsKey("sort")) {
+            sortBy = allRequestParams.get("sort");
+        }
+        final Pageable pageableRequest = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy).descending());
+        List<UserDTO> userDTOList = new ArrayList<>();
+
+        if (isFullInf != null) {
+            List<UserEntity> users = null;
+            users = userRepository.findUsersBetweenTwoDateWithOutPageable(startDate, endDate);
+            for (UserEntity user : users) {
+                UserDTO userDTO = new UserDTO(user.getLogin(),
+                        null, user.getFirstName(), user.getLastName(), user
+                        .getMiddleName(), user.getBirthDate(), user
+                        .getIin(), user.getMobileNumber(), user
+                        .getLangKey(), user.getConfirmed(), user.getAuthorities().stream()
+                        .map(AuthorityEntity::getName)
+                        .collect(Collectors.toList()), user.getPosition(), user.getDisablePush(), user.getContract(),
+                        user.getWalletConfirmedOffer(), user.getEnabledMobileSecurity(),
+                        user.getEmployeeNumber(), null, user.getCreatedDate(),user.getId(), user.getEmail(), user.isActivated());
+                userDTOList.add(userDTO);
+            }
+        }else {
+            Page<UserEntity> users = null;
+            users = userRepository.findUsersBetweenTwoDate(startDate, endDate, pageableRequest);
+            for (UserEntity user : users) {
+                UserDTO userDTO = new UserDTO(user.getLogin(),
+                        null, user.getFirstName(), user.getLastName(), user
+                        .getMiddleName(), user.getBirthDate(), user
+                        .getIin(), user.getMobileNumber(), user
+                        .getLangKey(), user.getConfirmed(), user.getAuthorities().stream()
+                        .map(AuthorityEntity::getName)
+                        .collect(Collectors.toList()), user.getPosition(), user.getDisablePush(), user.getContract(),
+                        user.getWalletConfirmedOffer(), user.getEnabledMobileSecurity(),
+                        user.getEmployeeNumber(), null, user.getCreatedDate(),user.getId(), user.getEmail(),user.isActivated());
+                userDTOList.add(userDTO);
+            }
+        }
+
+
+        return userDTOList;
     }
 
     public Long countUser() {

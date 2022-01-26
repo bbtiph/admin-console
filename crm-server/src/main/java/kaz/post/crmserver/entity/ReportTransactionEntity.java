@@ -34,6 +34,8 @@ public class ReportTransactionEntity extends AbstractEntity implements Serializa
 	private String toDate;
 	@Column(name = "type_report", nullable = false)
 	private int typeReport;
+	@Column(name = "user_name", nullable = false)
+	private String userName;
 }
 
 

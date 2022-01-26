@@ -38,4 +38,10 @@ public interface OrganizationRepository extends JpaRepository<OrganizationEntity
 		@Param("login") String login,
 		@Param("bin") String bin,
 		@Param("mobileNumber") String mobileNumber);
+
+	@Transactional
+	@Query("select count(*) from OrganizationEntity where created_date >= TO_DATE(:begData, 'YYYYMMDD') and created_date < TO_DATE(:endData, 'YYYYMMDD')")
+	int getCountByMonth(@Param("begData") String begData,
+						@Param("endData") String endData);
+
 }

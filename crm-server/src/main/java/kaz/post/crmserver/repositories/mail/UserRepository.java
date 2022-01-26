@@ -108,4 +108,9 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
     @Transactional
     @Query("SELECT (u) FROM UserEntity u WHERE (u.createdDate BETWEEN to_date('2020-01-01','yyyy-MM-dd') and to_date('2021-11-11','yyyy-MM-dd'))")
     List<UserEntity> findAllwithlimit();
+
+    @Transactional
+    @Query("select count(*) from UserEntity where created_date >= TO_DATE(:begData, 'YYYYMMDD') and created_date < TO_DATE(:endData, 'YYYYMMDD')")
+    int getCountByMonth(@Param("begData") String begData,
+                        @Param("endData") String endData);
 }
