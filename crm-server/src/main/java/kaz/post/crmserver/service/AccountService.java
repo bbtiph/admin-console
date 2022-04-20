@@ -132,13 +132,10 @@ public class AccountService {
         userDTO.setPassword(passwordEncoder.encode(userDTO.getPassword()));
         userDTO.setType(type);
 //        userCache.setJsonData(MailAppUtils.createJsonObject(userDTO));
-        System.out.println("**getOrganizations**");
-        System.out.println(userDTO.getOrganizations());
-        System.out.println("dffd>> " + userDTO.getUserRole());
         userCacheRepository.saveAndFlush(userCache);
         userService.createUserInformation(userDTO.getLogin(), userDTO.getPassword(), userDTO.getFirstName(), userDTO.getLastName(),
                                           userDTO.getMiddleName(), userDTO.getBirthDate(), userDTO.getIin(), userDTO.getMobileNumber(),
-                                          userDTO.getLangKey(), null, userCache, userDTO.getUserRole());
+                                          userDTO.getLangKey(), null, userCache, userDTO.getUserRole(), userDTO.getEmail());
         List<String> activeProfiles = Lists.newArrayList(Arrays.asList(env.getActiveProfiles()));
     }
 
@@ -150,7 +147,6 @@ public class AccountService {
                     "\"messageEn\":\"Login required.\", " +
                     "\"status\":\"error\"}", HttpStatus.NOT_ACCEPTABLE);
         } else if (userDTO.getLogin().length() < 5) {
-            System.out.println("there2");
             return new ResponseEntity<>("{\"error\":\"loginTooShort\"," +
                     "\"messageKk\":\"Логин 5 таңбадан тұруы керек.\"," +
                     "\"messageRu\":\"Логин должен быть не менее 5 символов.\"," +
@@ -158,11 +154,7 @@ public class AccountService {
                     "\"status\":\"error\"}", HttpStatus.NOT_ACCEPTABLE);
         }
         userDTO.setLogin(userDTO.getLogin().toLowerCase());
-        if (userDTO.getLogin().matches("\\d{12}")) {
-            userDTO.setIin(userDTO.getLogin());
-        } else {
-            userDTO.setIin("");
-        }
+
         ResponseEntity<String> FORBIDDEN = MailAppUtils.checkForbiddenLoginAndEmptyMobileNumber(userDTO);
         if (FORBIDDEN != null) return FORBIDDEN;
         try {

@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.inject.Inject;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -43,6 +44,8 @@ public class UserService {
     private OrganizationRepository organizationRepository;
     @Autowired
     private ReportTransactionRepository transactionRepository;
+    @Inject
+    LoginBlockRepository loginBlockRepository;
 
     public void setAuthority(AuthorityEntity authority, UserEntity newUser) {
         Set<AuthorityEntity> authorities = new HashSet<>();
@@ -52,7 +55,7 @@ public class UserService {
 
     public UserEntity createUserInformation(String login, String password, String firstName, String lastName,
                                             String middleName, Date birthDate, String iin, String mobileNumber,
-                                            String langKey, String organizationBin, UserCacheEntity cachedUser, String userRole) {
+                                            String langKey, String organizationBin, UserCacheEntity cachedUser, String userRole, String email) {
         UserEntity newUser = new UserEntity();
 
         Optional<OrganizationEntity> optionalOrganization;
@@ -73,6 +76,8 @@ public class UserService {
             newUser.setMobileNumber(mobileNumber);
         if (Objects.nonNull(langKey))
             newUser.setLangKey(langKey);
+        if (Objects.nonNull(email))
+            newUser.setEmail(email);
         // new user is not active
         newUser.setActivated(true);
         newUser.setConfirmed(true);
@@ -480,6 +485,16 @@ public class UserService {
             log.warn("user by login or iin: {} and short mobile number: {} is: {}", login, shortMobNum, user.isPresent() ? user.get() : null);
         }
         return user;
+    }
+
+    public ResponseEntity<?> resetPassword(String login, String type) {
+        LoginBlockEntity loginBlockEntity = null;
+        loginBlockEntity = loginBlockRepository.findOneByLoginAndType(login, type);
+        if (Objects.nonNull(loginBlockEntity)) {
+            loginBlockRepository.delete(loginBlockEntity);
+        }
+        return new ResponseEntity<>("{"
+                + "\"status\":\"ok\"}", HttpStatus.OK);
     }
 
 }

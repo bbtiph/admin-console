@@ -10,6 +10,7 @@ import kaz.post.crmserver.service.AccountService;
 import kaz.post.crmserver.service.ReportService;
 import kaz.post.crmserver.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -65,7 +66,7 @@ public class AccountController {
 
     @RequestMapping(value = "/createUser", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> createUser(
-            @Valid @RequestBody UserDTO userDTO,
+            @RequestBody UserDTO userDTO,
             @CookieValue(value = "_ga", required = false) String gaCookie,
             @RequestParam(value = "device", defaultValue = "web") String device) {
         return accountService.tryUserRegistry(userDTO, gaCookie, device, USER_TYPE);
@@ -176,6 +177,11 @@ public class AccountController {
         transactionEntity.setLinkOfExcel("post.kz/admin/console/" + transactionEntity.getId());
         transactionEntity.setTypeReport(Integer.valueOf(typeReport));
         transactionRepository.saveAndFlush(transactionEntity);
+    }
+
+    @GetMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@ApiParam(hidden = true) @RequestParam Map<String, String> allRequestParams) {
+        return userService.resetPassword(allRequestParams.get("login"), allRequestParams.get("type"));
     }
 
     @GetMapping("/get-report-by-okt/{year}")
